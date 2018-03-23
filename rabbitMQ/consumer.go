@@ -7,7 +7,6 @@ import (
 // Recive recive messages
 func (rabbit *RabbitMQ) Recive() {
 
-	rabbit.SetQueue()
 	defer rabbit.Close()
 
 	msgs, err := rabbit.Channel.Consume(

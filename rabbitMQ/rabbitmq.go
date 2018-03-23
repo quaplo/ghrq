@@ -14,24 +14,32 @@ type RabbitMQ struct {
 	Queue   amqp.Queue
 }
 
+// AMQPQueue queue define
+type AMQPQueue struct {
+	Name         string
+	Durable      bool
+	UnusedDelete bool
+	Exclusive    bool
+	NoWait       bool
+	Arguments    amqp.Table
+}
+
 // NewRabbitMQ construct
 func NewRabbitMQ() (*RabbitMQ, error) {
 	// create new instance
 	rabbitMQ := RabbitMQ{}
+	// define err as error type
+	var err error
 
 	// cerate connection
-	conn, err := amqp.Dial(os.Getenv("AMQP_SERVER_LOGIN"))
-	if err != nil {
+	if rabbitMQ.Conn, err = amqp.Dial(os.Getenv("AMQP_SERVER_LOGIN")); err != nil {
 		return nil, err
 	}
-	rabbitMQ.Conn = conn
 
 	// create channel
-	ch, err := conn.Channel()
-	if err != nil {
+	if rabbitMQ.Channel, err = rabbitMQ.Conn.Channel(); err != nil {
 		return nil, err
 	}
-	rabbitMQ.Channel = ch
 
 	return &rabbitMQ, nil
 }
@@ -43,26 +51,17 @@ func (rabbit *RabbitMQ) Close() {
 }
 
 // SetQueue define current queue
-func (rabbit *RabbitMQ) SetQueue() {
+func (rabbit *RabbitMQ) SetQueue(queue AMQPQueue) {
+	var err error
 	// @toto validate if channel not exist
-	queue, err := rabbit.Channel.QueueDeclare(
-		"go_test", // name
-		true,      // durable
-		false,     // delete when unused
-		false,     // exclusive
-		false,     // no-wait
-		nil,       // arguments
-	)
-
-	if err != nil {
+	if rabbit.Queue, err = rabbit.Channel.QueueDeclare(
+		queue.Name,         // name
+		queue.Durable,      // durable
+		queue.UnusedDelete, // delete when unused
+		queue.Exclusive,    // exclusive
+		queue.NoWait,       // no-wait
+		queue.Arguments,    // arguments
+	); err != nil {
 		log.Fatal("Canot define queue")
-	}
-
-	rabbit.Queue = queue
-}
-
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
 	}
 }

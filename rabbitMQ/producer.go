@@ -6,25 +6,31 @@ import (
 	"github.com/streadway/amqp"
 )
 
-// Publish simple message publishing
-func (rabbit *RabbitMQ) Publish() {
+// AMQPMessage format for sending message
+type AMQPMessage struct {
+	Exchange    string
+	RoutingKey  string
+	Mandatory   bool
+	Immediate   bool
+	ContentType string
+	Body        string
+}
 
-	rabbit.SetQueue()
+// Publish simple message publishing
+func (rabbit *RabbitMQ) Publish(message AMQPMessage) {
 	defer rabbit.Close()
 
-	for i := 0; i < 1000; i++ {
-		body := "hello"
-		err := rabbit.Channel.Publish(
-			"go_test",         // exchange
-			rabbit.Queue.Name, // routing key
-			false,             // mandatory
-			false,             // immediate
-			amqp.Publishing{
-				ContentType: "text/plain",
-				Body:        []byte(body),
-			})
-
-		log.Printf(" [x] Sent %s", body)
-		failOnError(err, "Failed to publish a message")
+	if err := rabbit.Channel.Publish(
+		message.Exchange,   // exchange
+		message.RoutingKey, // routing key
+		message.Mandatory,  // mandatory
+		message.Immediate,  // immediate
+		amqp.Publishing{
+			ContentType: message.ContentType,  // content type
+			Body:        []byte(message.Body), // body
+		}); err != nil {
+		log.Fatal("Failed to publish a message")
+	} else {
+		log.Printf(" [x] Sent %s", message.Body)
 	}
 }
