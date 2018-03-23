@@ -2,42 +2,27 @@ package rabbitMQ
 
 import (
 	"log"
-
-	"github.com/streadway/amqp"
 )
 
-// Recive reciving cha
-func Recive() {
+// Recive recive messages
+func (rabbit *RabbitMQ) Recive() {
 
-	conn, err := amqp.Dial("amqp://wtzlveww:lrbUQufW88S66j6fifVic9Pv6nXHLGuB@skunk.rmq.cloudamqp.com:5672/wtzlveww")
-	failOnError(err, "Failed to connect to RabbitMQ")
-	defer conn.Close()
+	rabbit.SetQueue()
+	defer rabbit.Close()
 
-	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
-	defer ch.Close()
-
-	q, err := ch.QueueDeclare(
-		"go_test", // name
-		true,      // durable
-		false,     // delete when unused
-		false,     // exclusive
-		false,     // no-wait
-		nil,       // arguments
+	msgs, err := rabbit.Channel.Consume(
+		rabbit.Queue.Name, // queue
+		"i_am_consumer",   // consumer
+		true,              // auto-ack
+		false,             // exclusive
+		false,             // no-local
+		false,             // no-wait
+		nil,               // args
 	)
 
-	failOnError(err, "Failed to declare a queue")
-
-	msgs, err := ch.Consume(
-		q.Name, // queue
-		"",     // consumer
-		true,   // auto-ack
-		false,  // exclusive
-		false,  // no-local
-		false,  // no-wait
-		nil,    // args
-	)
-	failOnError(err, "Failed to register a consumer")
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	forever := make(chan bool)
 
