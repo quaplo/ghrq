@@ -1,0 +1,6 @@
+rabbit:
+  host: "skunk.rmq.cloudamqp.com"
+  port: 5672
+  vhost: "wtzlveww"
+  user: "wtzlveww"
+  password: "lrbUQufW88S66j6fifVic9Pv6nXHLGuB"
