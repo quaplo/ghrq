@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"os"
+
+	"github.com/quaplo/ghrq/rabbitMQ"
 )
 
 // ConfigRabbitMQ connection for rabbitMQ service
@@ -34,10 +36,10 @@ func main() {
 	switch os.Args[1] {
 	case "c":
 		log.Print("Starting AMQP consumer")
-		Recive()
+		rabbitMQ.Recive()
 	case "p":
 		log.Print("Starting AMQP publisher")
-		Publish()
+		rabbitMQ.Publish()
 	default:
 		log.Print("Unknow type")
 	}
